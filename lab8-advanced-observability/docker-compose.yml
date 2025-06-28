@@ -1,0 +1,43 @@
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+  frontend:
+    image: jaegertracing/example-hotrod:latest
+    container_name: hotrod-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+    depends_on:
+      - jaeger
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-advanced
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus-advanced.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-advanced
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+volumes:
+  grafana-storage:
