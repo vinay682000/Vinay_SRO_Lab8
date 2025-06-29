@@ -7,3 +7,6 @@ scrape_configs:
   - job_name: 'jaeger'
     static_configs:
       - targets: ['jaeger:14269']
+  - job_name: 'custom-app'
+    static_configs:
+      - targets: ['custom-app:8000']

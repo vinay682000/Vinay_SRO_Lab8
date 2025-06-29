@@ -1,0 +1,5 @@
+FROM python:3.9-slim
+WORKDIR /app
+COPY custom-metrics-app.py .
+RUN pip install prometheus_client
+CMD ["python", "custom-metrics-app.py"]
