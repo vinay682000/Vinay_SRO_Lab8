@@ -1,0 +1,19 @@
+groups:
+- name: SLIAlerts
+  rules:
+  - alert: SLOAvailabilityBreach
+    expr: (sum(rate(app_requests_total[5m])) - sum(rate(app_errors_total[5m]))) / sum(rate(app_requests_total[5m])) * 100 < 99.9
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Availability SLO breach"
+      description: "Availability has fallen below 99.9% SLO"
+  - alert: SLOLatencyBreach
+    expr: histogram_quantile(0.95, sum(rate(app_request_duration_seconds_bucket[5m])) by (le)) > 0.5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Latency SLO breach"
+      description: "95th percentile latency has exceeded 500ms SLO"

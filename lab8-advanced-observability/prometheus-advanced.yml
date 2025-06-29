@@ -10,3 +10,9 @@ scrape_configs:
   - job_name: 'custom-app'
     static_configs:
       - targets: ['custom-app:8000']
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['localhost:9093'] # Default port for Alertmanager if used; adjust if needed
+rule_files:
+  - 'alert.rules.yml'

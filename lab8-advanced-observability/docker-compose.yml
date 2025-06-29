@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -44,5 +45,11 @@ services:
     container_name: custom-metrics-app
     ports:
       - "8000:8000"
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 volumes:
   grafana-storage:

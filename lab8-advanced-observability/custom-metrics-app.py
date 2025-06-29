@@ -1,4 +1,6 @@
 from prometheus_client import Counter, Histogram, Gauge, start_http_server
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
 import time
 import random
 import threading
@@ -8,6 +10,41 @@ REQUEST_COUNT = Counter('app_requests_total', 'Total app requests', ['method', '
 REQUEST_LATENCY = Histogram('app_request_duration_seconds', 'Request latency')
 ACTIVE_USERS = Gauge('app_active_users', 'Number of active users')
 ERROR_RATE = Counter('app_errors_total', 'Total application errors', ['error_type'])
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health':
+            # Basic health check
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            health_status = {
+                'status': 'healthy',
+                'timestamp': time.time(),
+                'checks': {
+                    'database': 'ok',
+                    'cache': 'ok',
+                    'external_api': 'ok'
+                }
+            }
+            self.wfile.write(json.dumps(health_status).encode())
+        elif self.path == '/ready':
+            # Readiness check
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            ready_status = {
+                'status': 'ready',
+                'timestamp': time.time()
+            }
+            self.wfile.write(json.dumps(ready_status).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+def start_health_server():
+    server = HTTPServer(('0.0.0.0', 8001), HealthHandler)
+    server.serve_forever()
 
 def simulate_web_traffic():
     """Simulate web application traffic with metrics"""
@@ -46,6 +83,11 @@ if __name__ == '__main__':
     # Start metrics server
     start_http_server(8000)
     print("Metrics server started on port 8000")
+    
+    # Start health server
+    health_thread = threading.Thread(target=start_health_server)
+    health_thread.daemon = True
+    health_thread.start()
     
     # Start traffic simulation
     traffic_thread = threading.Thread(target=simulate_web_traffic)
